@@ -1,0 +1,6 @@
+config
+node_modules
+npm-debug.log
+.gitignore
+.prettierrc
+yarn.lock

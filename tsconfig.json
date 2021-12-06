@@ -3,7 +3,7 @@
     "outDir": "build",
     "module": "commonjs",
     "types": ["node"],
-    "target": "esnext",
+    "target": "es6",
     "sourceMap": true,
     "allowJs": true,
     "noImplicitAny": false,
@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "strict": true,
-    "importHelpers": true,
+    "importHelpers": false,
     "typeRoots": ["src/types", "node_modules/@types"]
   },
   "include": ["src/**/*"],

@@ -66,15 +66,33 @@ const checkAndAddRole = async (client: Discord.Client) => {
   const discordMembers = await fetchDiscordMembers(guild);
   const filtered = filterDiscordMembers(discordMembers, sheetMembers);
 
+  /** role付与済みのメンバー */
+  const roleMembers = role.members;
+
   console.log('=============================');
 
-  // リストに合致したメンバーに権限付与
-  for (const member of filtered) {
-    console.log(`付与： ${member[1].id} ${member[1].user.tag}`);
-    await member[1].roles.add(role);
+  console.log('role付与済みのメンバーが以下');
+  const attachedIds: string[] = [];
+  for (const member of roleMembers) {
+    const id = member[1].user.id;
+    attachedIds.push(id);
+    console.log(`${id} ${member[1].user.tag}`);
   }
 
-  console.log('処理完了：' + new Date());
+  console.log('=============================');
+
+  console.log('新たに付与するメンバーが以下');
+  // リストに合致したメンバーに権限付与
+  for (const member of filtered) {
+    const id = member[1].id;
+    if (attachedIds.includes(id)) continue; // 付与済みならスキップ
+
+    console.log(`付与： ${id} ${member[1].user.tag}`);
+    await member[1].roles.add(role);
+  }
+  console.log('=============================');
+
+  console.log('処理完了：' + new Date().toISOString());
 };
 
 /**
@@ -104,7 +122,7 @@ const getSheetDiscordIds = async (): Promise<string[]> => {
   // console.log(labelledValues[0]);
   const discordIds = labelledValues[0]?.map((item) => item[config.columnTitle]).filter((item) => item) ?? [];
 
-  console.log(discordIds);
+  console.log(`解説のDiscordID\n${JSON.stringify(discordIds, null, '  ')}`);
   return discordIds;
 };
 

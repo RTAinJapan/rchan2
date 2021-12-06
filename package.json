@@ -25,7 +25,10 @@
     "start": "node build/js/index.js",
     "devstart": "ts-node --files src/js/index.ts",
     "build": "tsc",
-    "lint": "tslint src/**/*.ts"
+    "lint": "tslint src/**/*.ts",
+    "docker:build": "docker build . -t pasta04/rchan2:latest",
+    "docker:start": "docker-compose up -d",
+    "docker:bash": "docker exec -i -t rchan2 bash"
   },
   "license": "MIT"
 }
