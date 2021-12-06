@@ -22,7 +22,7 @@ const main = async () => {
     await (async () => {
       return new Promise<void>((resolve, reject) => {
         client.once('ready', () => {
-          console.log('Ready!');
+          console.log('Discord Ready!');
           resolve();
         });
       });
@@ -101,7 +101,7 @@ const checkAndAddRole = async (client: Discord.Client) => {
  */
 const getSheetDiscordIds = async (): Promise<string[]> => {
   const sheetsApi = google.sheets({ version: 'v4', auth: config.googleApiKey });
-  console.log('ログイン完了');
+  console.log('スプレッドシート取得完了');
 
   const res = await sheetsApi.spreadsheets.values.batchGet({
     spreadsheetId: config.sheetId,
@@ -159,7 +159,7 @@ const filterDiscordMembers = (guildFullMembers: Discord.Collection<string, Disco
   // 操作対象として指定されているのにサーバにいない人をチェック
   const discordTags = guildFullMembers.map((mem) => mem.user.tag);
   for (const sheetDiscordId of sheetDiscordIds) {
-    if (!discordTags.includes(sheetDiscordId)) console.warn('いない：' + sheetDiscordId);
+    if (!discordTags.includes(sheetDiscordId)) console.log('いない：' + sheetDiscordId);
   }
 
   return targetMember;

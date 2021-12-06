@@ -34,7 +34,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         yield (() => __awaiter(void 0, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
                 client.once('ready', () => {
-                    console.log('Ready!');
+                    console.log('Discord Ready!');
                     resolve();
                 });
             });
@@ -104,7 +104,7 @@ const checkAndAddRole = (client) => __awaiter(void 0, void 0, void 0, function* 
 const getSheetDiscordIds = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const sheetsApi = googleapis_1.google.sheets({ version: 'v4', auth: config.googleApiKey });
-    console.log('ログイン完了');
+    console.log('スプレッドシート取得完了');
     const res = yield sheetsApi.spreadsheets.values.batchGet({
         spreadsheetId: config.sheetId,
         // 取得対象のシート名
@@ -155,7 +155,7 @@ const filterDiscordMembers = (guildFullMembers, sheetDiscordIds) => {
     const discordTags = guildFullMembers.map((mem) => mem.user.tag);
     for (const sheetDiscordId of sheetDiscordIds) {
         if (!discordTags.includes(sheetDiscordId))
-            console.warn('いない：' + sheetDiscordId);
+            console.log('いない：' + sheetDiscordId);
     }
     return targetMember;
 };
