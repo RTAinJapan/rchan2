@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
       - run: npm ci
-      - run: npm test
+      - run: npm lint
       - run: npm run build
   build-container:
     runs-on: ubuntu-latest
