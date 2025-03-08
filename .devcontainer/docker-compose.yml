@@ -1,0 +1,12 @@
+services:
+  rchan2-dev:
+    build: .
+    restart: always
+    working_dir: '/workspace'
+    tty: true
+    volumes:
+      - type: bind
+        source: ../
+        target: /workspace
+    environment:
+      TZ: Asia/Tokyo

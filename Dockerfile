@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:22-slim
 
 WORKDIR /usr/src/app
 
@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 ENV NODE_ENV production
 COPY package*.json ./
 RUN npm install
+RUN npm run build
 
 ## Bundle app source
 COPY . .

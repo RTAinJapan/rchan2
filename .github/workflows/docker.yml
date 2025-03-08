@@ -1,0 +1,66 @@
+name: Publish Docker image to ghcr.io
+
+# release時に実行
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  REGISTRY_IMAGE: rtainjapan/rchan2
+  TAGS: |
+    type=edge
+    type=ref,event=pr
+    type=ref,event=branch
+    type=semver,pattern={{version}}
+    type=semver,pattern={{major}}.{{minor}}
+    type=semver,pattern={{major}}
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+  build-container:
+    runs-on: ubuntu-latest
+    if: github.repository == 'rtainjapan/rchan2'
+    steps:
+      - uses: actions/checkout@v4
+      # メタデータを抽出
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: ${{ env.TAGS }}
+      # ghcr.ioへログイン
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # ビルド
+      - name: Build Docker Image
+        run: |
+          docker build --tag ghcr.io/${{ github.repository_owner }}/rchan2:latest \
+          --tag ghcr.io/${{ github.repository_owner }}/rchan2:$${{ steps.meta.outputs.version }} \
+          .
+      # push
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/${{ github.repository_owner }}/rchan2:latest
+          docker push ghcr.io/${{ github.repository_owner }}/rchan2:$${{ steps.meta.outputs.version }}

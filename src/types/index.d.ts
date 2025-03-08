@@ -20,6 +20,6 @@ type Config = {
   columnTitle: string;
   /** Google API */
   googleApiKey: string;
-  /** 権限のチェック間隔 */
+  /** 権限のチェック間隔(ミリ秒) */
   checkInterval: number;
 };
