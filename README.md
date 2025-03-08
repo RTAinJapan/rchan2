@@ -23,7 +23,14 @@ CHECK_INTERVAL="チェック間隔(ミリ秒)"
 ```
 
 ## 実行
+- 環境変数設定済みの場合
 
 ```bash
 npm run start
+```
+
+- .envから環境変数を読み込んで実行する場合
+
+```bash
+npx dotenv -- npm run start
 ```

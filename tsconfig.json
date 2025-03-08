@@ -2,8 +2,10 @@
   "compilerOptions": {
     "outDir": "build",
     "module": "commonjs",
-    "types": ["node"],
-    "target": "es6",
+    "types": [
+      "node"
+    ],
+    "target": "es2020",
     "sourceMap": true,
     "allowJs": true,
     "noImplicitAny": false,
@@ -13,8 +15,21 @@
     "esModuleInterop": true,
     "strict": true,
     "importHelpers": false,
-    "typeRoots": ["src/types", "node_modules/@types"]
+    "typeRoots": [
+      "src/types",
+      "node_modules/@types"
+    ]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "scripts", "acceptance-tests", "webpack", "jest", "src/setupTests.ts"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "scripts",
+    "acceptance-tests",
+    "webpack",
+    "jest",
+    "src/setupTests.ts"
+  ]
 }
