@@ -1,11 +1,14 @@
-version: '3.8'
-
 services:
   rchan2:
-    image: pasta04/rchan2
+    image: ghcr.io/rtainjapan/rchan2:latest
     container_name: rchan2
-    volumes:
-      - ./config:/usr/src/app/config
-    # environment:
-    #   - HOGE: 1234
+    environment:
+      - DISCORD_GUILD_ID=
+      - DISCORD_ROLE_ID=
+      - DISCORD_TOKEN=
+      - GOOGLE_SPREADSHEET_ID=
+      - GOOGLE_SPREADSHEET_SHEETNAME=
+      - GOOGLE_SPREADSHEET_COLUMNNAME=
+      - GOOGLE_APIKEY=
+      - CHECK_INTERVAL=
     restart: always

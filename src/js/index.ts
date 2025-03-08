@@ -1,21 +1,67 @@
 import { zipObject } from 'lodash';
-import Discord from 'discord.js';
-import configModule from 'config';
+import Discord, { ClientOptions, GatewayIntentBits } from 'discord.js';
 import { google } from 'googleapis';
 
-const config: Config = configModule.util.toObject(configModule);
-console.log(config);
+let config: Config;
+
+/**
+ * 環境変数から設定値を取得
+ * @returns config
+ */
+const getConfig = (): Config => {
+  const data: Config = {
+    guildId: process.env.DISCORD_GUILD_ID as string,
+    roleId: process.env.DISCORD_ROLE_ID as string,
+    discordToken: process.env.DISCORD_TOKEN as string,
+    sheetId: process.env.GOOGLE_SPREADSHEET_ID as string,
+    sheetTitle: process.env.GOOGLE_SPREADSHEET_SHEETNAME as string,
+    columnTitle: process.env.GOOGLE_SPREADSHEET_COLUMNNAME as string,
+    googleApiKey: process.env.GOOGLE_APIKEY as string,
+    checkInterval: Number(process.env.CHECK_INTERVAL ?? 10 * 60 * 1000),
+  };
+
+  if (!data.guildId) {
+    throw new Error('The environment variable DISCORD_GUILD_ID is not specified.');
+  }
+
+  if (!data.roleId) {
+    throw new Error('The environment variable DISCORD_ROLE_ID is not specified.');
+  }
+
+  if (!data.discordToken) {
+    throw new Error('The environment variable DISCORD_TOKEN is not specified.');
+  }
+
+  if (!data.sheetId) {
+    throw new Error('The environment variable GOOGLE_SPREADSHEET_ID is not specified.');
+  }
+
+  if (!data.sheetTitle) {
+    throw new Error('The environment variable GOOGLE_SPREADSHEET_SHEETNAME is not specified.');
+  }
+
+  if (!data.columnTitle) {
+    throw new Error('The environment variable GOOGLE_SPREADSHEET_COLUMNNAME is not specified.');
+  }
+
+  if (!data.googleApiKey) {
+    throw new Error('The environment variable GOOGLE_APIKEY is not specified.');
+  }
+
+  return data;
+};
 
 const main = async () => {
   try {
-    //  Discordのトークン取得
-    const token = config.discordToken ? config.discordToken : process.env.NODE_ENV_DISCORD_TOKEN;
-    if (!token) throw new Error('Discord認証トークンが指定されていません。');
+    config = getConfig();
 
     // Discordログイン
+    const discordoptions: ClientOptions = {
+      intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, 1099511627776],
+    };
     /** DiscordのClientオブジェクト */
-    const client = new Discord.Client();
-    await client.login(token);
+    const client = new Discord.Client(discordoptions);
+    await client.login(config.discordToken);
     if (!client.user) throw new Error('ログインに失敗しました。');
 
     // 何か裏でいろいろしてるので準備完了を待つ
@@ -32,17 +78,13 @@ const main = async () => {
     checkAndAddRole(client);
     setInterval(() => {
       checkAndAddRole(client);
-    }, config.checkInterval * 60 * 1000);
+    }, config.checkInterval);
   } catch (error) {
     console.error('何かエラーがあった');
     console.error(error);
     process.exit();
   }
 };
-
-(() => {
-  main();
-})();
 
 /**
  * Discordのメンバーに権限を付与する
@@ -53,12 +95,12 @@ const checkAndAddRole = async (client: Discord.Client) => {
 
   // 操作対象のサーバ取得
   const guild = await client.guilds.fetch(config.guildId);
-  if (!guild) throw new Error('操作対象のサーバ情報を取得できません。');
+  if (!guild || !guild.name) throw new Error(`操作対象のサーバ情報を取得できません。guildID=${config.guildId}`);
   console.log(`サーバ名: ${guild.name}`);
 
   // 付与する権限の表示名を取得
   const role = guild.roles.cache.get(config.roleId);
-  if (!role) throw new Error('操作対象のサーバに指定した権限が存在しません。');
+  if (!role || !role.name) throw new Error(`操作対象のサーバに指定した権限が存在しません。roleID=${config.roleId}`);
   const roleName = role.name;
   console.log(`権限： ${roleName}`);
 
@@ -92,7 +134,10 @@ const checkAndAddRole = async (client: Discord.Client) => {
   }
   console.log('=============================');
 
-  console.log('処理完了：' + new Date().toISOString());
+  const now = new Date();
+  console.log(`処理完了：${now.toString()}`);
+  now.setMilliseconds(now.getMilliseconds() + config.checkInterval);
+  console.log(`次回処理：${now.toString()}`);
 };
 
 /**
@@ -132,14 +177,9 @@ const getSheetDiscordIds = async (): Promise<string[]> => {
  * @returns メンバーのリスト
  */
 const fetchDiscordMembers = async (guild: Discord.Guild): Promise<Discord.Collection<string, Discord.GuildMember>> => {
+  console.log('サーバの全メンバーを取得');
   await guild.members.fetch();
   const guildFullMembers = guild.members.cache;
-
-  // 全メンバーを確認したい時は以下のコメントアウトを外す;
-  // console.log('メンバーは以下');
-  // for (const member of guildFullMembers) {
-  //   console.log(`"${member[1].user.id}", "${member[1].user.tag}"`);
-  // }
 
   return guildFullMembers;
 };
@@ -151,16 +191,22 @@ const fetchDiscordMembers = async (guild: Discord.Guild): Promise<Discord.Collec
  * @returns 絞り込み後のメンバーリスト
  */
 const filterDiscordMembers = (guildFullMembers: Discord.Collection<string, Discord.GuildMember>, sheetDiscordIds: string[]) => {
+  console.log('付与対象のメンバーに絞り込み');
   // 付与対象に絞り込み
   const targetMember = guildFullMembers.filter((member) => {
-    return sheetDiscordIds.includes(member.user.tag);
+    // #0の入力有無を吸収
+    return sheetDiscordIds.includes(member.user.tag) || sheetDiscordIds.includes(`${member.user.tag}#0`);
   });
 
   // 操作対象として指定されているのにサーバにいない人をチェック
   const discordTags = guildFullMembers.map((mem) => mem.user.tag);
   for (const sheetDiscordId of sheetDiscordIds) {
-    if (!discordTags.includes(sheetDiscordId)) console.log('いない：' + sheetDiscordId);
+    if (!discordTags.includes(sheetDiscordId) && !discordTags.includes(`${sheetDiscordId.replace(/#0$/, '')}`)) console.log('いない：' + sheetDiscordId);
   }
 
   return targetMember;
 };
+
+(() => {
+  main();
+})();
