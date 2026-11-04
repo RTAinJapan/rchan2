@@ -43,13 +43,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - 
-        name: Login to registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+      # 他アーキテクチャ(arm64/armv7)向けビルドのためQEMUとBuildxをセットアップ
+      # see: https://docs.docker.com/build/ci/github-actions/multi-platform/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       # see also https://github.com/docker/metadata-action
       - name: Build and push
         id: build-and-push
@@ -57,7 +56,11 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          # amd64: 通常のPC/サーバー, arm64: Raspberry Pi 3/4/5 (64bit OS), arm/v7: Raspberry Pi 2/3/4 (32bit OS)
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Generate artifact attestation
