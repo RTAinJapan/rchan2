@@ -1,54 +1,48 @@
-import { FlatCompat } from '@eslint/eslintrc';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import js from '@eslint/js';
-import typeScriptESLint from '@typescript-eslint/eslint-plugin';
-import typeScriptESLintParser from '@typescript-eslint/parser';
+import tseslint from 'typescript-eslint';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
+import { defineConfig } from 'eslint/config';
 
-const compat = new FlatCompat();
-
-export default [
+export default defineConfig(
   {
-    ignores: ['**/node_modules/**', '**/build/**', 'webpack.config.ts', '*.mjs'],
+    ignores: ['**/node_modules/**', '**/build/**', '*.mjs'],
   },
   js.configs.recommended,
-  eslintConfigPrettier,
-  ...compat.extends('plugin:@typescript-eslint/eslint-recommended', 'plugin:prettier/recommended', 'prettier'),
+  tseslint.configs.eslintRecommended,
   {
-    plugins: {
-      typeScriptESLint,
-    },
+    files: ['**/*.ts'],
     languageOptions: {
       globals: {
-        Atomics: 'readonly',
-        SharedArrayBuffer: 'readonly',
-        ...globals.browser,
+        ...globals.node,
       },
-      parser: typeScriptESLintParser,
+      parser: tseslint.parser,
       parserOptions: {
         sourceType: 'module',
         project: './tsconfig.json',
-        ecmaVersion: 2015,
       },
     },
-    settings: {},
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
     rules: {
       'no-console': 'off',
       'no-debugger': 'error',
-      'node/no-deprecated-api': 'off',
-      'node/no-unpublished-import': 'off',
-      'node/no-unpublished-require': 'off',
-      'node/no-unsupported-features/es-syntax': 'off',
       'no-process-exit': 'off',
-      'node/no-missing-import': 'off',
       'no-unused-vars': 'off',
+    },
+  },
+  // prettier は最後に適用して、整形に関するルールの競合を無効化する
+  eslintPluginPrettierRecommended,
+  {
+    rules: {
       'prettier/prettier': [
         'error',
         {
-          'singleQuote': true,
-          'printWidth': 180,
-        }
+          singleQuote: true,
+          printWidth: 180,
+        },
       ],
     },
   },
-];
+);

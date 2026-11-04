@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "build",
-    "module": "commonjs",
+    "module": "node16",
     "types": [
       "node"
     ],
@@ -9,9 +9,10 @@
     "sourceMap": true,
     "allowJs": true,
     "noImplicitAny": false,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "strict": true,
     "importHelpers": false,
