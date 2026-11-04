@@ -12,6 +12,7 @@
     "moduleResolution": "node16",
     "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "strict": true,
     "importHelpers": false,
