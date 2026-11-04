@@ -1,6 +1,5 @@
-import { zipObject } from 'lodash';
 import Discord, { ClientOptions, GatewayIntentBits } from 'discord.js';
-import { google } from 'googleapis';
+import { sheets } from '@googleapis/sheets';
 
 let config: Config;
 
@@ -145,7 +144,7 @@ const checkAndAddRole = async (client: Discord.Client) => {
  * @returns DiscordID(xxxx#1234形式)のリスト
  */
 const getSheetDiscordIds = async (): Promise<string[]> => {
-  const sheetsApi = google.sheets({ version: 'v4', auth: config.googleApiKey });
+  const sheetsApi = sheets({ version: 'v4', auth: config.googleApiKey });
   console.log('スプレッドシート取得完了');
 
   const res = await sheetsApi.spreadsheets.values.batchGet({
@@ -162,7 +161,7 @@ const getSheetDiscordIds = async (): Promise<string[]> => {
       return;
     }
     const [labels, ...contents] = sheet.values;
-    return contents.map((content) => zipObject(labels, content));
+    return contents.map((content) => Object.fromEntries(labels.map((label, i) => [label, content[i]])));
   });
   // console.log(labelledValues[0]);
   const discordIds = labelledValues[0]?.map((item) => item[config.columnTitle]).filter((item) => item) ?? [];
