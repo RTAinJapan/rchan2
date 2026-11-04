@@ -133,3 +133,5 @@ jobs:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.inspect.outputs.digest }}
           push-to-registry: true
+          # 組織向けのartifact metadata(storage record)は使わないため無効化
+          create-storage-record: false
